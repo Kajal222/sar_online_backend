@@ -1,0 +1,58 @@
+{
+    "docId": 0,
+    "appellant": "The Project Director, Uphsdp, Lucknow And Ors.",
+    "remarkable": "none",
+    "respondent": "Commercial Court No. 1 Lucknow Thru Its Presiding",
+    "judgeName": "none",
+    "judgementOrder": "",
+    "judgementType": "Order",
+    "caseResult": "(3)The application under section 34 of the Arbitration and Conciliation Act, 1996 against the Arbitral Award dated 31.01.2021, has been dismissed on the grounds of limitation.",
+    "doubleCouncilDetailRequest": {
+        "advocateForRespondent": "Abhinav Bhattacharya",
+        "advocateForAppellant": "C.S.C.",
+        "extraCouncilDetails": "none"
+    },
+    "singleCouncilDetailRequest": null,
+    "courtDetailRequest": {
+        "allJudges": "none",
+        "courtBenchId": 3,
+        "courtBranchId": "41",
+        "courtId": 19
+    },
+    "citationRequest": {
+        "citationCategoryId": 0,
+        "journalId": 0,
+        "otherCitation": "",
+        "neutralCitation": "2025:AHC-LKO:26557-DB",
+        "pageNumber": "1",
+        "year": 2024,
+        "volume": "none",
+        "secondaryCitationCategoryId": 0,
+        "secondaryJournalId": 0,
+        "secondaryPageNumber": "",
+        "secondaryYear": "0",
+        "secondaryVolume": "",
+        "thirdCitationCategoryId": 0,
+        "thirdJournalId": 0,
+        "thirdPageNumber": "none",
+        "thirdYear": "0",
+        "thirdVolume": "none",
+        "fourthCitationCategoryId": 0,
+        "fourthJournalId": 0,
+        "fourthPageNumber": "none",
+        "fourthYear": "0",
+        "fourthVolume": "none"
+    },
+    "additionalAppellantRespondentRequestList": [],
+    "caseHistoryRequest": {
+        "caseNumber": "08",
+        "decidedDay": "6",
+        "decidedMonth": "12",
+        "decidedYear": 2024,
+        "notes": "none",
+        "year": 2024
+    },
+    "casesReferredRequestList": [],
+    "headNoteRequestList": [],
+    "caseTopics": []
+}

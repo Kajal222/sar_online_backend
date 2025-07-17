@@ -1,0 +1,209 @@
+{
+  "document_types": {
+    "supreme_court": {
+      "description": "Supreme Court judgments and orders",
+      "patterns": {
+        "citation_year": {
+          "patterns": [
+            "NEUTRAL CITATION NO\\.\\s*(\\d{4}):",
+            "Citation No\\.\\s*(\\d{4})",
+            "(\\d{4})\\s*[A-Z]+\\s*\\d+"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract year from citation numbers"
+        },
+        "neutral_citation": {
+          "patterns": [
+            "NEUTRAL CITATION NO\\.\\s*([^\\n]+)",
+            "Citation No\\.\\s*([^\\n]+)",
+            "([A-Z]+\\s*\\d+\\s*[A-Z]+\\s*\\d+)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract full citation number"
+        },
+        "judge": {
+          "patterns": [
+            "JUSTICE\\s+([A-Z\\s]+)",
+            "HON'BLE\\s+JUSTICE\\s+([A-Z\\s]+)",
+            "MR\\.\\s+JUSTICE\\s+([A-Z\\s]+)",
+            "MRS\\.\\s+JUSTICE\\s+([A-Z\\s]+)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract judge names"
+        }
+      }
+    },
+    "high_court": {
+      "description": "High Court judgments and orders",
+      "patterns": {
+        "case_number": {
+          "patterns": [
+            "Case No\\.\\s*([^\\n]+)",
+            "W\\.P\\.\\s*([^\\n]+)",
+            "C\\.W\\.\\s*([^\\n]+)",
+            "([A-Z]+\\s*\\d+\\s*\\d{4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract case number"
+        },
+        "judge": {
+          "patterns": [
+            "HON'BLE\\s+JUSTICE\\s+([A-Z\\s]+)",
+            "JUSTICE\\s+([A-Z\\s]+)",
+            "MR\\.\\s+JUSTICE\\s+([A-Z\\s]+)",
+            "MRS\\.\\s+JUSTICE\\s+([A-Z\\s]+)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract judge names"
+        },
+        "decision_date": {
+          "patterns": [
+            "Decided on\\s*([^\\n]+)",
+            "Date\\s*:\\s*([^\\n]+)",
+            "(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract decision date"
+        }
+      }
+    },
+    "district_court": {
+      "description": "District Court judgments and orders",
+      "patterns": {
+        "case_number": {
+          "patterns": [
+            "Case No\\.\\s*([^\\n]+)",
+            "Suit No\\.\\s*([^\\n]+)",
+            "([A-Z]+\\s*\\d+\\s*\\d{4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract case number"
+        },
+        "judge": {
+          "patterns": [
+            "JUDGE\\s+([A-Z\\s]+)",
+            "MAGISTRATE\\s+([A-Z\\s]+)",
+            "PRESIDING OFFICER\\s+([A-Z\\s]+)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract judge/magistrate names"
+        }
+      }
+    },
+    "tribunal": {
+      "description": "Tribunal orders and judgments",
+      "patterns": {
+        "case_number": {
+          "patterns": [
+            "Case No\\.\\s*([^\\n]+)",
+            "Application No\\.\\s*([^\\n]+)",
+            "([A-Z]+\\s*\\d+\\s*\\d{4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract case/application number"
+        },
+        "tribunal_name": {
+          "patterns": [
+            "([A-Z\\s]+TRIBUNAL[A-Z\\s]*)",
+            "([A-Z\\s]+COMMISSION[A-Z\\s]*)",
+            "([A-Z\\s]+BOARD[A-Z\\s]*)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract tribunal name"
+        }
+      }
+    },
+    "contract": {
+      "description": "Legal contracts and agreements",
+      "patterns": {
+        "parties": {
+          "patterns": [
+            "BETWEEN\\s*:\\s*([^\\n]+)",
+            "AND\\s*:\\s*([^\\n]+)",
+            "Party A\\s*:\\s*([^\\n]+)",
+            "Party B\\s*:\\s*([^\\n]+)"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract party names"
+        },
+        "contract_date": {
+          "patterns": [
+            "Date\\s*:\\s*([^\\n]+)",
+            "Executed on\\s*([^\\n]+)",
+            "(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract contract date"
+        },
+        "contract_value": {
+          "patterns": [
+            "(Rs\\.\\s*\\d+[,\\d]*)",
+            "(\\$\\s*\\d+[,\\d]*)",
+            "(\\d+[,\\d]*\\s*(?:rupees|dollars))"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract contract value"
+        }
+      }
+    },
+    "legislation": {
+      "description": "Acts, rules, and regulations",
+      "patterns": {
+        "act_name": {
+          "patterns": [
+            "([A-Z\\s]+ACT[A-Z\\s]*\\d{4})",
+            "([A-Z\\s]+RULES[A-Z\\s]*\\d{4})",
+            "([A-Z\\s]+REGULATIONS[A-Z\\s]*\\d{4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract act/rule name"
+        },
+        "enactment_date": {
+          "patterns": [
+            "Enacted on\\s*([^\\n]+)",
+            "Date of enactment\\s*:\\s*([^\\n]+)",
+            "(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})"
+          ],
+          "extraction_type": "regex",
+          "description": "Extract enactment date"
+        }
+      }
+    }
+  },
+  "common_patterns": {
+    "dates": {
+      "patterns": [
+        "(\\d{1,2}[\\/\\-]\\d{1,2}[\\/\\-]\\d{2,4})",
+        "(\\d{1,2}\\s+[A-Z]+\\s+\\d{4})",
+        "(\\d{4}[\\/\\-]\\d{1,2}[\\/\\-]\\d{1,2})",
+        "(\\d{1,2}\\.\\d{1,2}\\.\\d{2,4})"
+      ],
+      "extraction_type": "regex",
+      "description": "Common date patterns"
+    },
+    "amounts": {
+      "patterns": [
+        "(Rs\\.\\s*\\d+[,\\d]*)",
+        "(\\$\\s*\\d+[,\\d]*)",
+        "(\\d+[,\\d]*\\s*(?:rupees|dollars))",
+        "(\\d+[,\\d]*\\s*[A-Z]{3})"
+      ],
+      "extraction_type": "regex",
+      "description": "Common monetary amount patterns"
+    },
+    "names": {
+      "patterns": [
+        "([A-Z][a-z]+\\s+[A-Z][a-z]+)",
+        "([A-Z]+\\s+[A-Z]+)"
+      ],
+      "extraction_type": "regex",
+      "description": "Common name patterns"
+    }
+  },
+  "post_processing": {
+    "clean": "Remove extra whitespace and normalize text",
+    "normalize": "Convert to uppercase",
+    "validate": "Validate extracted data format",
+    "deduplicate": "Remove duplicate entries"
+  }
+} 
