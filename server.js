@@ -4,13 +4,20 @@ const multer = require("multer");
 const cors = require("cors");
 const { spawn } = require('child_process');
 const path = require("path");
+const pdfParse = require("pdf-parse");
+const { OpenAI } = require("openai");
+require("dotenv").config();
+
 const app = express();
-const pdfParse = require('pdf-parse');
-// Middleware
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+});
+
+// Enable CORS
 app.use(cors());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
-
+app.use(express.json());
 // Debug middleware to log request details
 app.use((req, res, next) => {
     console.log(`${req.method} ${req.path}`, {
@@ -25,48 +32,49 @@ app.use((req, res, next) => {
 // Configure multer for file uploads
 const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-        const uploadDir = path.join(__dirname, 'uploads');
+        const uploadDir = './uploads';
+        // Create uploads directory if it doesn't exist
         if (!fs.existsSync(uploadDir)) {
             fs.mkdirSync(uploadDir, { recursive: true });
         }
         cb(null, uploadDir);
     },
     filename: function (req, file, cb) {
+        // Generate unique filename with timestamp
         const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
         cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
     }
 });
 
-const upload = multer({ 
+// File filter to only allow PDF files
+const fileFilter = (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+        cb(null, true);
+    } else {
+        cb(new Error('Only PDF files are allowed!'), false);
+    }
+};
+
+const upload = multer({
     storage: storage,
+    fileFilter: fileFilter,
     limits: {
         fileSize: 50 * 1024 * 1024 // 50MB limit
-    },
-    fileFilter: function (req, file, cb) {
-        // Accept PDF files and images
-        const allowedTypes = [
-            'application/pdf',
-            'image/jpeg',
-            'image/jpg', 
-            'image/png',
-            'image/tiff',
-            'image/bmp'
-        ];
-        
-        if (allowedTypes.includes(file.mimetype)) {
-            cb(null, true);
-        } else {
-            cb(new Error('Only PDF files and images (JPEG, PNG, TIFF, BMP) are supported'), false);
-        }
     }
 });
 
-// Utility function to get Python path
-function getPythonPath() {
-    return process.env.PYTHON_PATH || 'python';
-}
+/**
+ * Extract legal metadata from PDF using Python script
+ * @param {string} pdfPath - Absolute path to the PDF file
+ * @param {string} tesseractPath - Optional path to tesseract executable
+ * @returns {Promise<Object>} - Extracted metadata
+ */
 
-// Utility function to clean up files
+
+/**
+ * Clean up uploaded files
+ * @param {string} filePath - Path to file to delete
+ */
 function cleanupFile(filePath) {
     try {
         if (fs.existsSync(filePath)) {
@@ -74,361 +82,278 @@ function cleanupFile(filePath) {
             console.log(`Cleaned up file: ${filePath}`);
         }
     } catch (error) {
-        console.error(`Failed to cleanup file ${filePath}:`, error);
+        console.error(`Error cleaning up file ${filePath}:`, error);
     }
 }
 
-// Main endpoint for legal document extraction
-app.post("/extract/legal", upload.single("file"), async (req, res) => {
-    console.log("/extract/legal endpoint hit");
-    
+
+app.post('/extract-parties', upload.single('pdf'), async (req, res) => {
     try {
-        let processingMethod = '';
-        let filePath = null;
-        let extractedText = '';
-        
-        // Handle different input types
-        if (req.file) {
-            // File upload handling
-            console.log("Processing uploaded file:", req.file.originalname);
-            console.log("File type:", req.file.mimetype);
-            console.log("File size:", req.file.size, "bytes");
-            
-            filePath = req.file.path;
-            processingMethod = 'file_upload';
-            
-        } else if (req.body.text) {
-            // Direct text input for testing
-            extractedText = req.body.text;
-            processingMethod = 'text_input';
-            console.log("Processing direct text input, length:", extractedText.length);
-            
-        } else {
-            return res.status(400).json({ 
-                error: "No input provided. Please upload a PDF/image file or provide text content.",
-                supported_formats: ["PDF", "JPEG", "PNG", "TIFF", "BMP"],
-                success: false
+        if (!req.file) {
+            return res.status(400).json({ error: 'No PDF file uploaded' });
+        }
+
+        // Read file as buffer
+        const dataBuffer = fs.readFileSync(req.file.path);
+
+        // Parse PDF to text
+        const pdfData = await pdfParse(dataBuffer);
+        const text = pdfData.text;
+
+        // Prompt to extract metadata
+        const prompt = `
+  You are a legal document analysis assistant. Given the following court judgment content, extract only the following:
+  1. Appellant Name(s)
+  2. Respondent Name(s)
+  
+  Return response in this JSON format:
+  {
+    "appellant": "...",
+    "respondent": "..."
+  }
+  
+  CONTENT:
+  ${text}
+  `;
+
+        // Send to OpenAI
+        const completion = await openai.chat.completions.create({
+            model: 'gpt-4o',
+            messages: [{
+                role: 'user', content: `Extract the following fields and return ONLY valid JSON with these exact keys: 1. "appellants": Look for words like "Appellant", "Petitioner", or "Petitioners" — these are mostly found on the first page. There can be multiple names, so return them in an array format. Extract only the main entity names (e.g., remove address, "through Secretary", etc.).
+
+2. "respondents": Look for words like "Respondent" or "Respondents", also typically on the first page. Extract all respondent names in an array. Same as appellants, extract only the main names.
+3. "judge_name": Check for presence of "Judgment" or "Order" in the document. Judge names are often mentioned in dedicated paragraphs or at the end of the document like "(ANIL KSHETARPAL) JUDGE". Extract the full name of the judge, excluding prefixes like "Justice", "Hon'ble", etc.
+
+  CONTENT:
+  ${text}
+  
+  Return response in this JSON format:
+  {
+    "appellant": "...",
+    "respondent": "..."
+    "judge_name:": "..."
+  }` }],
+            max_tokens: 2000,
+            temperature: 0.3
+        });
+
+        let resultText = completion.choices[0]?.message?.content || '{}';
+
+        // Sanitize: Remove code block markers and language tags
+        resultText = resultText.replace(/```json\s*|```/g, '').trim();
+
+        let parsedJSON = {};
+        try {
+            parsedJSON = JSON.parse(resultText);
+        } catch (err) {
+            return res.status(500).json({
+                error: 'Failed to parse AI response. Content was:',
+                content: resultText,
             });
         }
-        
-        console.log("Starting AI-powered legal metadata extraction...");
-        
-        // Call the comprehensive AI extractor
-        const extractLegalMetadata = (inputPath, inputText) => {
+
+        res.json(parsedJSON);
+    } catch (err) {
+        console.error(err);
+        res.status(500).json({ error: 'Internal server error', details: err.message });
+    } finally {
+        // Cleanup uploaded file
+        if (req.file) fs.unlinkSync(req.file.path);
+    }
+});
+
+app.post('/extract-metadata', upload.single('pdf'), async (req, res) => {
+    console.log('Received PDF upload request');
+
+    // Check if file was uploaded
+    if (!req.file) {
+        return res.status(400).json({
+            success: false,
+            error: 'No PDF file uploaded',
+            message: 'Please upload a PDF file using the "pdf" field name'
+        });
+    }
+
+    const pdfPath = req.file.path;
+    const originalName = req.file.originalname;
+    const tesseractPath = req.query.tesseract_path || null;
+
+    console.log(`Processing PDF: ${originalName} at ${pdfPath}`);
+
+    try {
+        function extractLegalMetadata(pdfPath, tesseractPath = null) {
             return new Promise((resolve, reject) => {
-                
                 // Prepare Python command arguments
-                let pythonArgs = ['scripts/legal_document_extractor_simple.py'];
-                
-                if (inputPath) {
-                    // File processing
-                    pythonArgs.push('--file', inputPath);
-                } else if (inputText) {
-                    // Text processing
-                    pythonArgs.push('--text', inputText);
-                } else {
-                    reject(new Error('No input provided to Python script'));
-                    return;
+                const pythonArgs = ['scripts/legal_document_extractor_simple.py', '--pdf', pdfPath];
+
+                // Add tesseract path if provided
+                if (tesseractPath) {
+                    pythonArgs.push('--tesseract-path', tesseractPath);
                 }
-                
-                console.log("Executing Python command:", getPythonPath(), pythonArgs.join(' '));
-                
-                // Spawn Python process with enhanced configuration
-                const pythonProcess = spawn(getPythonPath(), pythonArgs, {
-                    env: {
-                        ...process.env,
-                        OPENAI_API_KEY: process.env.OPENAI_API_KEY,
-                        PYTHONIOENCODING: 'utf-8',
-                        PYTHONUNBUFFERED: '1'
-                    },
-                    maxBuffer: 1024 * 1024 * 20, // 20MB buffer for large outputs
-                    timeout: 120000 // 2 minutes timeout for AI processing
-                });
-                
-                let output = '';
-                let error = '';
-                let processStartTime = Date.now();
-                
-                pythonProcess.stdout.on('data', (data) => {
-                    output += data.toString();
-                    console.log(`Python output received (${data.length} bytes)`);
+
+                console.log(`Executing: python ${pythonArgs.join(' ')}`);
+
+                // Spawn Python process
+                const python = spawn('python', pythonArgs, {
+                    cwd: __dirname, // Ensure we're in the correct directory
+                    stdio: ['pipe', 'pipe', 'pipe']
                 });
 
-                pythonProcess.stderr.on('data', (data) => {
-                    error += data.toString();
-                    console.log("Python stderr:", data.toString());
+                let result = '';
+                let errorOutput = '';
+
+                // Collect stdout data
+                python.stdout.on('data', (data) => {
+                    result += data.toString();
                 });
 
-                pythonProcess.on('close', (code) => {
-                    const processingTime = Date.now() - processStartTime;
-                    console.log(`Python process completed in ${processingTime}ms with exit code ${code}`);
-                    
-                    if (code !== 0) {
-                        console.error("Python process failed:", error);
-                        reject(new Error(error || `Python process exited with code ${code}`));
-                    } else {
+                // Collect stderr data
+                python.stderr.on('data', (data) => {
+                    errorOutput += data.toString();
+                    console.error('Python stderr:', data.toString());
+                });
+
+                // Handle process completion
+                python.on('close', (code) => {
+                    console.log(`Python process exited with code: ${code}`);
+
+                    if (code === 0) {
                         try {
-                            // Parse the JSON output
-                            const cleanOutput = output.trim();
-                            
-                            // Handle potential multiple JSON objects in output
-                            let jsonStart = cleanOutput.indexOf('{');
-                            let jsonEnd = cleanOutput.lastIndexOf('}');
-                            
-                            if (jsonStart !== -1 && jsonEnd !== -1) {
-                                const jsonString = cleanOutput.substring(jsonStart, jsonEnd + 1);
-                                const result = JSON.parse(jsonString);
-                                
-                                // Log extraction results
-                                console.log("✓ AI Extraction Results:");
-                                console.log("  Appellant:", result.appellant);
-                                console.log("  Respondent:", result.respondent);
-                                console.log("  Judge:", result.judgeName);
-                                console.log("  Case Number:", result.caseHistoryRequest?.caseNumber);
-                                console.log("  Case Year:", result.caseHistoryRequest?.year);
-                                console.log("  Extraction Method:", result.extraction_method);
-                                
-                                resolve(result);
-                            } else {
-                                reject(new Error("No valid JSON found in Python output"));
-                            }
-                            
+                            const parsedResult = JSON.parse(result);
+                            resolve(parsedResult);
                         } catch (parseError) {
-                            console.error("JSON parsing failed:", parseError);
-                            console.error("Raw output (first 1000 chars):", output.substring(0, 1000));
-                            reject(new Error(`Failed to parse extraction results: ${parseError.message}`));
+                            console.error('JSON parsing error:', parseError);
+                            reject(new Error(`Failed to parse JSON output: ${parseError.message}`));
                         }
+                    } else {
+                        reject(new Error(`Python script failed with code ${code}. Error: ${errorOutput}`));
                     }
                 });
 
-                pythonProcess.on('error', (err) => {
-                    console.error("Python process spawn error:", err);
-                    reject(new Error(`Failed to start AI extraction process: ${err.message}`));
+                // Handle process errors
+                python.on('error', (error) => {
+                    console.error('Python process error:', error);
+                    reject(new Error(`Failed to start Python process: ${error.message}`));
                 });
 
-                // Handle process timeout
+                // Set timeout for long-running processes
                 setTimeout(() => {
-                    if (!pythonProcess.killed) {
-                        pythonProcess.kill();
-                        reject(new Error('AI extraction timed out after 2 minutes'));
-                    }
-                }, 120000);
+                    python.kill('SIGTERM');
+                    reject(new Error('PDF processing timeout after 2 minutes'));
+                }, 120000); // 2 minutes timeout
             });
-        };
-
-        // Execute extraction
-        const metadata = await extractLegalMetadata(filePath, extractedText);
-        
-        // Clean up uploaded file
-        if (filePath) {
-            cleanupFile(filePath);
         }
-        
-        console.log("✓ Legal metadata extraction completed successfully");
-        
-        // Prepare comprehensive response
+        // Extract metadata using Python script
+        const extractedData = await extractLegalMetadata(pdfPath, tesseractPath);
+
+        // Add file information to response
         const response = {
             success: true,
-            timestamp: new Date().toISOString(),
-            processing_method: processingMethod,
-            extraction_method: metadata.extraction_method || 'Unknown',
-            
-            // Core metadata
-            metadata: metadata,
-            
-            // Key extracted fields for easy access
-            key_fields: {
-                appellant: metadata.appellant,
-                respondent: metadata.respondent,
-                judge: metadata.judgeName,
-                case_number: metadata.caseHistoryRequest?.caseNumber,
-                case_year: metadata.caseHistoryRequest?.year,
-                case_type: metadata.ai_metadata?.case_type,
-                case_status: metadata.ai_metadata?.case_status,
-                court_location: metadata.ai_metadata?.court_location,
-                judgment_type: metadata.judgementType,
-                case_result: metadata.caseResult
+            metadata: extractedData,
+            fileInfo: {
+                originalName: originalName,
+                fileSize: req.file.size,
+                uploadTime: new Date().toISOString()
             },
-            
-            // Processing info
-            processing_info: {
-                input_type: req.file ? req.file.mimetype : 'text/plain',
-                file_size: req.file ? req.file.size : extractedText.length,
-                file_name: req.file ? req.file.originalname : 'text_input',
-                text_length: extractedText.length || 'processed_from_file'
-            },
-            
-            // API info
-            api_info: {
-                version: "2.0",
-                capabilities: [
-                    "PDF text extraction",
-                    "Image OCR processing", 
-                    "Scanned document processing",
-                    "AI-powered entity recognition",
-                    "Indian legal document parsing",
-                    "Multi-format support"
-                ],
-                supported_formats: ["PDF", "JPEG", "PNG", "TIFF", "BMP", "Text"]
+            processingInfo: {
+                extractionMethod: extractedData.extractionMetadata?.pdf_processing?.extraction_method || 'Unknown',
+                confidence: extractedData.extractionMetadata?.pdf_processing?.confidence || 0,
+                isScanned: extractedData.extractionMetadata?.pdf_processing?.is_scanned || false,
+                pageCount: extractedData.extractionMetadata?.pdf_processing?.page_count || 0
             }
         };
         
         res.json(response);
         
     } catch (error) {
-        console.error("❌ Error in /extract/legal:", error);
-        
-        // Clean up uploaded file on error
-        if (req.file && req.file.path) {
-            cleanupFile(req.file.path);
-        }
-        
-        // Determine error type and message
-        let errorMessage = "Legal document extraction failed";
-        let errorCode = 500;
-        
-        if (error.message.includes("timed out")) {
-            errorMessage = "Extraction timed out. Please try with a smaller document or try again later.";
-            errorCode = 408;
-        } else if (error.message.includes("OPENAI_API_KEY")) {
-            errorMessage = "AI service not configured. Please contact administrator.";
-            errorCode = 503;
-        } else if (error.message.includes("Failed to parse")) {
-            errorMessage = "Document format not supported or corrupted.";
-            errorCode = 422;
-        } else if (error.message.includes("No text content")) {
-            errorMessage = "No readable content found in the document.";
-            errorCode = 422;
-        } else {
-            errorMessage = error.message;
-        }
-        
-        const errorResponse = {
+        console.error('Extraction error:', error);
+
+        // Return error response with partial data if available
+        res.status(500).json({
             success: false,
-            error: errorMessage,
-            error_type: error.constructor.name,
-            timestamp: new Date().toISOString(),
-            supported_formats: ["PDF", "JPEG", "PNG", "TIFF", "BMP"],
-            help: {
-                message: "Ensure your document is a valid legal document with readable text",
-                tips: [
-                    "For scanned documents, ensure good image quality",
-                    "PDF files should contain text (not just images)",
-                    "Supported languages: English (legal documents)",
-                    "Maximum file size: 50MB"
-                ]
+            error: error.message,
+            fileInfo: {
+                originalName: originalName,
+                fileSize: req.file.size,
+                uploadTime: new Date().toISOString()
+            },
+            // Provide fallback data
+            data: {
+                appellant: 'Appellant',
+                respondent: 'Respondent',
+                judgeName: 'none',
+                judgementType: 'Judgement',
+                caseResult: 'Failed to extract case result'
             }
-        };
-        
-        // Add debug info in development
-        if (process.env.NODE_ENV === 'development') {
-            errorResponse.debug = {
-                stack: error.stack,
-                arguments: process.argv,
-                environment: {
-                    node_version: process.version,
-                    openai_configured: !!process.env.OPENAI_API_KEY
-                }
-            };
-        }
-        
-        res.status(errorCode).json(errorResponse);
+        });
+
+    } finally {
+        // Clean up uploaded file
+        cleanupFile(pdfPath);
     }
 });
 
-// Health check endpoint
-app.get("/extract/legal/health", (req, res) => {
-    const health = {
-        status: "healthy",
-        timestamp: new Date().toISOString(),
-        version: "2.0",
-        services: {
-            openai: !!process.env.OPENAI_API_KEY,
-            python: true, // We assume Python is available
-            file_upload: true,
-            ocr: true // We assume OCR libraries are installed
-        },
-        capabilities: [
-            "PDF text extraction",
-            "Image OCR processing",
-            "AI-powered extraction", 
-            "Multi-format support"
-        ]
-    };
-    
-    res.json(health);
-});
 
-// Get supported formats endpoint
-app.get("/extract/legal/formats", (req, res) => {
-    res.json({
-        supported_formats: {
-            "application/pdf": {
-                description: "PDF documents with text or images",
-                max_size: "50MB",
-                processing: ["text_extraction", "ocr_fallback"]
-            },
-            "image/jpeg": {
-                description: "JPEG images of documents",
-                max_size: "50MB", 
-                processing: ["ocr"]
-            },
-            "image/png": {
-                description: "PNG images of documents",
-                max_size: "50MB",
-                processing: ["ocr"]
-            },
-            "image/tiff": {
-                description: "TIFF images of documents",
-                max_size: "50MB",
-                processing: ["ocr"]
-            },
-            "image/bmp": {
-                description: "BMP images of documents", 
-                max_size: "50MB",
-                processing: ["ocr"]
-            },
-            "text/plain": {
-                description: "Direct text input",
-                max_size: "10MB",
-                processing: ["ai_extraction"]
-            }
-        },
-        extraction_fields: [
-            "appellant",
-            "respondent", 
-            "judgeName",
-            "caseNumber",
-            "caseYear",
-            "courtName",
-            "judgmentType",
-            "caseResult",
-            "appellantAdvocate",
-            "respondentAdvocate",
-            "caseType",
-            "citation"
-        ]
+// Error handling middleware
+app.use((error, req, res, next) => {
+    if (error instanceof multer.MulterError) {
+        if (error.code === 'LIMIT_FILE_SIZE') {
+            return res.status(400).json({
+                success: false,
+                error: 'File too large',
+                message: 'PDF file size must be less than 50MB'
+            });
+        }
+        if (error.code === 'LIMIT_UNEXPECTED_FILE') {
+            return res.status(400).json({
+                success: false,
+                error: 'Unexpected file field',
+                message: 'Please use the correct field name for file upload'
+            });
+        }
+    }
+
+    if (error.message === 'Only PDF files are allowed!') {
+        return res.status(400).json({
+            success: false,
+            error: 'Invalid file type',
+            message: 'Only PDF files are allowed'
+        });
+    }
+
+    console.error('Unhandled error:', error);
+    res.status(500).json({
+        success: false,
+        error: 'Internal server error',
+        message: error.message
     });
 });
 
 // 404 handler
 app.use((req, res) => {
-    res.status(404).json({ 
-        error: 'Endpoint not found' 
+    res.status(404).json({
+        error: 'Endpoint not found'
     });
 });
 
 // Global error handler
 app.use((error, req, res, next) => {
     console.error('Unhandled error:', error);
-    res.status(500).json({ 
-        error: 'Internal server error' 
+    res.status(500).json({
+        error: 'Internal server error'
     });
 });
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
-    console.log(`🚀 Server running on port ${PORT}`);
-    console.log(`📁 Upload directory: ${path.join(__dirname, 'uploads')}`);
-    console.log(`🐍 Python path: ${getPythonPath()}`);
+    console.log(`Legal Document Metadata Extractor API running on port ${PORT}`);
+    console.log(`Main endpoint: http://localhost:${PORT}/extract-metadata`);
+
+    // Check if Python script exists
+    const pythonScript = path.join(__dirname, 'scripts/legal_document_extractor_simple.py');
+    if (!fs.existsSync(pythonScript)) {
+        console.warn(`Warning: Python script not found at ${pythonScript}`);
+        console.warn('Please ensure legal_document_extractor_simple.py is in the same directory as this Node.js file');
+    }
 });

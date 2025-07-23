@@ -1,10 +1,15 @@
 {
-    "openai_api_key": "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",
-    "huggingface_api_key": "",
-    "enable_llm_extraction": true,
-    "enable_spacy_extraction": true,
-    "confidence_threshold": 0.7,
-    "max_results_per_field": 5,
-    "timeout_seconds": 30,
-    "_instructions": "Replace 'YOUR_OPENAI_API_KEY_HERE' with your actual OpenAI API key (starts with 'sk-')"
+  "openai_api_key": "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",
+  "model": "gpt-4-0613",
+  "max_retries": 3,
+  "min_delay_between_calls": 1.0,
+  "batch_delay": 2.0,
+  "rate_limit_caps": {
+    "rate_limit": 120,
+    "api_error": 60,
+    "timeout": 30,
+    "general": 15
+  },
+  "max_tokens": 2000,
+  "temperature": 0.1
 } 
