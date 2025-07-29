@@ -271,9 +271,21 @@ app.get('/health', (req, res) => {
  * 
  * Returns the .docx file as a download.
  */
+//
+// POST /generate-docx
+//
+// Convert an uploaded PDF into a Word document using the enhanced
+// converter.  This endpoint accepts a single PDF file via
+// multipart/form-data (field name `pdf`) and returns a `.docx` file
+// download with the same basename.  It delegates the heavy lifting
+// to a Python script (`scripts/enhanced_pdf_to_docx.py`) which
+// implements advanced formatting preservation: removal of headers
+// like page numbers and watermarks, font and alignment preservation,
+// and cleanup of scanner artifacts.
+//
 app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
     console.log('Received PDF for DOCX generation');
-    
+    // Validate that a file was actually uploaded
     if (!req.file) {
         return res.status(400).json({
             success: false,
@@ -281,83 +293,81 @@ app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
             message: 'Please upload a PDF file using the "pdf" field name'
         });
     }
-    
     const pdfPath = req.file.path;
     const originalName = req.file.originalname;
     const fileSize = req.file.size;
+    // Ensure the temporary directory for output exists
     const tempDir = './temp';
-    
     if (!fs.existsSync(tempDir)) {
         fs.mkdirSync(tempDir, { recursive: true });
     }
-    
+    // Construct the output DOCX path using the uploaded file's basename
     const docxFileName = path.basename(pdfPath, path.extname(pdfPath)) + '.docx';
     const docxPath = path.join(tempDir, docxFileName);
-    
     console.log(`Converting PDF: ${originalName} (${(fileSize / 1024 / 1024).toFixed(2)}MB) to DOCX`);
-    
     try {
-        // Call the specialized legal document converter v5 with Versus and respondent list handling
+        // Prepare the Python command arguments.  Use the enhanced
+        // converter script rather than the older v5 converter.
         const pythonArgs = [
-            'scripts/legal_document_converter_v5.py',
+            'scripts/enhanced_pdf_to_docx.py',
             pdfPath,
             docxPath
         ];
-        
         console.log(`Executing: python ${pythonArgs.join(' ')}`);
-        
+        // Spawn the Python process in the current working directory
         const python = spawn('python', pythonArgs, {
             cwd: __dirname,
-            stdio: ['pipe', 'pipe', 'pipe']
+            stdio: ['ignore', 'pipe', 'pipe']
         });
-        
         let errorOutput = '';
+        // Capture stderr for diagnostic purposes
         python.stderr.on('data', (data) => {
             errorOutput += data.toString();
             console.error('Python stderr:', data.toString());
         });
-        
-        // Set timeout for conversion process
-        const timeoutMs = fileSize > 5 * 1024 * 1024 ? 300000 : 120000; // 5 minutes for large files
+        // Timeout based on file size: larger files get more time
+        const timeoutMs = fileSize > 5 * 1024 * 1024 ? 300000 : 120000;
+        // Kill the Python process if it runs too long
         const timeoutId = setTimeout(() => {
+            console.error(`DOCX conversion timeout after ${timeoutMs/1000} seconds`);
             python.kill('SIGTERM');
-            throw new Error(`DOCX conversion timeout after ${timeoutMs/1000} seconds`);
         }, timeoutMs);
-        
-        const pythonExit = await new Promise((resolve, reject) => {
+        // Await process exit
+        await new Promise((resolve, reject) => {
             python.on('close', (code) => {
                 clearTimeout(timeoutId);
                 if (code === 0) {
-                    resolve(code);
+                    resolve();
                 } else {
                     reject(new Error(`Python script failed with code ${code}. Error: ${errorOutput}`));
                 }
             });
-            
             python.on('error', (error) => {
                 clearTimeout(timeoutId);
                 reject(new Error(`Failed to start Python process: ${error.message}`));
             });
         });
-        
-        // Send .docx as download
+        // Stream the generated DOCX back to the client.  Use res.download
+        // which sets appropriate headers and handles streaming.  Cleanup
+        // temp files after the download completes.
         res.download(docxPath, docxFileName, (err) => {
+            // Always remove the uploaded PDF and generated DOCX
             cleanupFile(pdfPath);
             cleanupFile(docxPath);
             if (err) {
                 console.error('Error sending .docx:', err);
-                res.status(500).json({ 
-                    success: false, 
+                res.status(500).json({
+                    success: false,
                     error: 'Failed to send .docx file',
-                    message: err.message 
+                    message: err.message
                 });
             } else {
                 console.log(`✅ Successfully converted ${originalName} to DOCX`);
             }
         });
-        
     } catch (error) {
         console.error('DOCX generation error:', error);
+        // Clean up temp files on error
         cleanupFile(pdfPath);
         cleanupFile(docxPath);
         res.status(500).json({
