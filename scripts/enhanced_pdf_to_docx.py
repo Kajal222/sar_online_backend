@@ -193,6 +193,54 @@ class LegalDocumentConverter:
         # Default to body text
         return self.font_size_mapping['body']
 
+    def merge_enumerated_blocks(self, blocks):
+        """
+        Merge blocks where a standalone enumeration number (e.g. "1.", "2.")
+        appears on its own line and should be combined with the following block's
+        text. This helps keep numbered points on the same line as their
+        corresponding content in the output document.
+
+        Parameters
+        ----------
+        blocks : list
+            List of text blocks extracted from the page. Each block is a
+            tuple/list containing bounding box coordinates and text.
+
+        Returns
+        -------
+        list
+            New list of blocks with enumeration numbers merged with the
+            following block's text when appropriate.
+        """
+        merged_blocks = []
+        skip_next = False
+        for i, block in enumerate(blocks):
+            if skip_next:
+                skip_next = False
+                continue
+            # Work on a mutable copy of the block
+            current_block = list(block)
+            text = current_block[4].strip() if len(current_block) > 4 else ""
+            # Detect patterns like "1." or "2" that represent list numbers
+            if re.match(r'^\d+\.?$', text) and i + 1 < len(blocks):
+                next_block = list(blocks[i + 1])
+                next_text = next_block[4] if len(next_block) > 4 else ""
+                # Combine the enumeration number with the following text
+                combined_text = f"{text} {next_text}".strip()
+                # Keep the position of the enumeration block but extend the width to the next block
+                # to reflect the combined content. Use the min left and max right coordinates.
+                new_left = min(current_block[0], next_block[0])
+                new_top = current_block[1]
+                new_right = max(current_block[2], next_block[2])
+                new_bottom = max(current_block[3], next_block[3])
+                new_block = [new_left, new_top, new_right, new_bottom, combined_text]
+                merged_blocks.append(new_block)
+                skip_next = True
+            else:
+                # No merging necessary; append the block as-is
+                merged_blocks.append(current_block)
+        return merged_blocks
+
     def should_bold(self, text):
         """Determine if text should be bold based on legal document patterns."""
         # Titles and headings
@@ -321,62 +369,65 @@ class LegalDocumentConverter:
                 
                 # Sort blocks by vertical position, then horizontal
                 filtered_blocks.sort(key=lambda b: (b[1], b[0]))
-                
+
+                # Merge enumeration numbers (e.g. "1.") with the following block's text
+                merged_blocks = self.merge_enumerated_blocks(filtered_blocks)
+
                 # Process blocks and create paragraphs
                 current_paragraph_text = ""
                 current_alignment = WD_ALIGN_PARAGRAPH.LEFT
                 current_font_size = self.font_size_mapping['body']
                 current_bold = False
-                
-                for i, block in enumerate(filtered_blocks):
+
+                for i, block in enumerate(merged_blocks):
                     text = block[4]
-                    
+
                     # Detect formatting for this block
                     alignment = self.detect_alignment(block)
                     font_size = self.detect_font_size(block)
                     bold = self.should_bold(text)
-                    
+
                     # Check if we should start a new paragraph
                     should_new_paragraph = False
-                    
+
                     # Different alignment requires new paragraph
                     if alignment != current_alignment:
                         should_new_paragraph = True
-                    
+
                     # Different font size requires new paragraph
                     if font_size != current_font_size:
                         should_new_paragraph = True
-                    
+
                     # Different bold setting requires new paragraph
                     if bold != current_bold:
                         should_new_paragraph = True
-                    
+
                     # Significant vertical gap indicates new paragraph
                     if i > 0:
-                        prev_block = filtered_blocks[i-1]
+                        prev_block = merged_blocks[i-1]
                         vertical_gap = block[1] - (prev_block[1] + prev_block[3])
                         if vertical_gap > 15:  # More than 15 points gap
                             should_new_paragraph = True
-                    
+
                     # If we need a new paragraph, save the current one
                     if should_new_paragraph and current_paragraph_text:
                         self.add_paragraph_to_document(
-                            document, current_paragraph_text, 
+                            document, current_paragraph_text,
                             current_alignment, current_font_size, current_bold
                         )
                         current_paragraph_text = ""
-                    
+
                     # Update current formatting
                     current_alignment = alignment
                     current_font_size = font_size
                     current_bold = bold
-                    
+
                     # Add text to current paragraph
                     if current_paragraph_text:
                         current_paragraph_text += " " + text
                     else:
                         current_paragraph_text = text
-                
+
                 # Add the last paragraph
                 if current_paragraph_text:
                     self.add_paragraph_to_document(
