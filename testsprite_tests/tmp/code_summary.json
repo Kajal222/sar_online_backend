@@ -1,0 +1,177 @@
+{
+  "tech_stack": [
+    "Node.js",
+    "Express.js",
+    "Python",
+    "OpenAI API",
+    "PyMuPDF",
+    "Tesseract OCR",
+    "Multer",
+    "CORS"
+  ],
+  "features": [
+    {
+      "name": "extract-metadata",
+      "description": "Extract legal metadata from PDF documents using AI-powered analysis",
+      "files": ["server.js", "scripts/legal_document_extractor_simple.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "Legal Document Metadata Extractor API",
+          "version": "1.0.0",
+          "description": "AI-powered legal document metadata extraction service"
+        },
+        "paths": {
+          "/extract-metadata": {
+            "post": {
+              "summary": "Extract legal metadata from PDF",
+              "description": "Upload a PDF file and extract legal metadata including appellant, respondent, judge name, case details, and more",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "multipart/form-data": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "pdf": {
+                          "type": "string",
+                          "format": "binary",
+                          "description": "PDF file to process"
+                        }
+                      },
+                      "required": ["pdf"]
+                    }
+                  }
+                }
+              },
+              "parameters": [
+                {
+                  "name": "tesseract_path",
+                  "in": "query",
+                  "description": "Optional path to Tesseract executable",
+                  "required": false,
+                  "schema": {
+                    "type": "string"
+                  }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Successful extraction",
+                  "content": {
+                    "application/json": {
+                      "schema": {
+                        "type": "object",
+                        "properties": {
+                          "success": {
+                            "type": "boolean"
+                          },
+                          "metadata": {
+                            "type": "object",
+                            "properties": {
+                              "appellant": {"type": "string"},
+                              "respondent": {"type": "string"},
+                              "judgeName": {"type": "string"},
+                              "judgementType": {"type": "string"},
+                              "caseResult": {"type": "string"},
+                              "caseNumber": {"type": "string"},
+                              "courtName": {"type": "string"},
+                              "dateOfJudgement": {"type": "string"},
+                              "referredCases": {"type": "array", "items": {"type": "string"}},
+                              "extractionMetadata": {"type": "object"}
+                            }
+                          },
+                          "fileInfo": {
+                            "type": "object",
+                            "properties": {
+                              "originalName": {"type": "string"},
+                              "fileSize": {"type": "number"},
+                              "uploadTime": {"type": "string"}
+                            }
+                          },
+                          "processingInfo": {
+                            "type": "object",
+                            "properties": {
+                              "extractionMethod": {"type": "string"},
+                              "confidence": {"type": "number"},
+                              "isScanned": {"type": "boolean"},
+                              "pageCount": {"type": "number"}
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Bad request - no file uploaded or invalid file type"
+                },
+                "500": {
+                  "description": "Internal server error during extraction"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      "name": "generate-docx",
+      "description": "Convert PDF to DOCX format with header/footer removal",
+      "files": ["server.js", "scripts/pdf_to_docx_no_header.py"],
+      "api_doc": {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "PDF to DOCX Converter API",
+          "version": "1.0.0",
+          "description": "Convert PDF files to DOCX format with enhanced formatting"
+        },
+        "paths": {
+          "/generate-docx": {
+            "post": {
+              "summary": "Convert PDF to DOCX",
+              "description": "Upload a PDF file and convert it to DOCX format with header/footer removal",
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "multipart/form-data": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "pdf": {
+                          "type": "string",
+                          "format": "binary",
+                          "description": "PDF file to convert"
+                        }
+                      },
+                      "required": ["pdf"]
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": {
+                  "description": "DOCX file download",
+                  "content": {
+                    "application/vnd.openxmlformats-officedocument.wordprocessingml.document": {
+                      "schema": {
+                        "type": "string",
+                        "format": "binary"
+                      }
+                    }
+                  }
+                },
+                "400": {
+                  "description": "Bad request - no file uploaded or invalid file type"
+                },
+                "500": {
+                  "description": "Internal server error during conversion"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  ]
+} 

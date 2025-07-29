@@ -1,0 +1,42 @@
+[
+  {
+    "id": "TC001",
+    "title": "valid pdf upload and metadata extraction",
+    "description": "Test uploading a valid PDF file to the /extract-metadata endpoint and verify successful extraction of legal metadata including appellant, respondent, judgeName, judgementType, caseResult, caseNumber, courtName, dateOfJudgement, and referredCases."
+  },
+  {
+    "id": "TC002",
+    "title": "invalid file type rejection on metadata extraction",
+    "description": "Test uploading a non-PDF file to the /extract-metadata endpoint and verify that the system rejects the file with an appropriate error message indicating invalid file type."
+  },
+  {
+    "id": "TC003",
+    "title": "large file size handling on metadata extraction",
+    "description": "Test uploading a PDF file close to the 50MB size limit to the /extract-metadata endpoint and verify that the system processes the file correctly without errors or performance degradation."
+  },
+  {
+    "id": "TC004",
+    "title": "scanned document processing with ocr",
+    "description": "Test uploading a scanned PDF document to the /extract-metadata endpoint and verify that the system uses OCR (optionally with tesseract_path) to extract metadata accurately."
+  },
+  {
+    "id": "TC005",
+    "title": "ai extraction fallback to regex",
+    "description": "Simulate AI extraction failure on the /extract-metadata endpoint and verify that the system falls back to regex-based extraction to retrieve metadata."
+  },
+  {
+    "id": "TC006",
+    "title": "rate limiting enforcement",
+    "description": "Test sending more than 100 requests per minute to any endpoint and verify that the system enforces rate limiting and returns appropriate error responses."
+  },
+  {
+    "id": "TC007",
+    "title": "error handling for extraction endpoint",
+    "description": "Test various error scenarios on the /extract-metadata endpoint such as missing required fields, corrupted PDF files, and invalid query parameters, and verify graceful error handling with meaningful messages."
+  },
+  {
+    "id": "TC008",
+    "title": "pdf to docx conversion success",
+    "description": "Test uploading a valid PDF file to the /generate-docx endpoint and verify successful conversion to DOCX format with header and footer removed, and correct file download response."
+  }
+]

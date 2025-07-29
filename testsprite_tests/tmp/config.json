@@ -1,0 +1,17 @@
+{
+  "status": "init",
+  "scope": "codebase",
+  "type": "backend",
+  "localEndpoint": "http://localhost:3000",
+  "serverPort": 54374,
+  "executionArgs": {
+    "projectName": "sar_online_backend",
+    "projectPath": "d:/Kajal/sar_online/sar_online_backend",
+    "testIds": [],
+    "additionalInstruction": "Use the actual PDF files from testsprite_tests/test_files/ directory. Test the legal document extraction functionality with real PDF files including anita_yuvraj_test.pdf, Tej Karan - Jodhpur.pdf, and other available files. Focus on validating AI extraction accuracy, OCR processing, and fallback mechanisms.",
+    "envs": {
+      "API_KEY": "sk-user-zxrovYGfnPcVo7l7OzDxnZ8a31zpz1cGObNY5MDmrFK792ia-_NxzJW-E4wbbKH11rDyZybGDB-pO8k74I_YJBROmkLs5fqObaghGfXZyedJmy84MDKo08FNMHqGQax6jfE"
+    }
+  },
+  "proxy": "http://4b0a0105-c81c-47ff-94d0-065e41e7289f:PuUvjZ9muQo5B32PrFGhv8yfcKmaVhYc@tun.testsprite.com:8080"
+}

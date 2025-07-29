@@ -1,0 +1,223 @@
+{
+  "testPlan": {
+    "name": "Enhanced PDF to DOCX API Test Plan",
+    "description": "Comprehensive test plan for the enhanced PDF to DOCX conversion API with legal document processing",
+    "version": "1.0.0",
+    "testCases": [
+      {
+        "id": "EDX001",
+        "name": "Valid PDF Upload and DOCX Generation",
+        "description": "Test successful conversion of a valid legal PDF to DOCX format",
+        "priority": "High",
+        "steps": [
+          "Upload a valid legal PDF file (judgment/order)",
+          "Verify successful conversion to DOCX",
+          "Check that page numbers are removed",
+          "Verify content preservation",
+          "Check font and alignment preservation"
+        ],
+        "expectedResult": "DOCX file generated successfully with preserved content and formatting"
+      },
+      {
+        "id": "EDX002",
+        "name": "Page Number Removal",
+        "description": "Test removal of page numbers from headers and footers",
+        "priority": "High",
+        "steps": [
+          "Upload PDF with page numbers in headers/footers",
+          "Convert to DOCX",
+          "Verify page numbers are removed",
+          "Check that content is preserved"
+        ],
+        "expectedResult": "Page numbers removed while preserving document content"
+      },
+      {
+        "id": "EDX003",
+        "name": "Watermark Removal",
+        "description": "Test removal of watermarks and scanner artifacts",
+        "priority": "High",
+        "steps": [
+          "Upload PDF with watermarks (CONFIDENTIAL, DRAFT, etc.)",
+          "Convert to DOCX",
+          "Verify watermarks are removed",
+          "Check content integrity"
+        ],
+        "expectedResult": "Watermarks removed while preserving legal content"
+      },
+      {
+        "id": "EDX004",
+        "name": "Font and Alignment Preservation",
+        "description": "Test preservation of original fonts, sizes, and alignment",
+        "priority": "High",
+        "steps": [
+          "Upload PDF with mixed formatting (titles, headings, body text)",
+          "Convert to DOCX",
+          "Verify font sizes are preserved",
+          "Check alignment (left, center, right, justified)",
+          "Verify bold formatting for titles and headings"
+        ],
+        "expectedResult": "Original formatting preserved in DOCX output"
+      },
+      {
+        "id": "EDX005",
+        "name": "Legal Document Structure Preservation",
+        "description": "Test preservation of legal document structure and hierarchy",
+        "priority": "High",
+        "steps": [
+          "Upload legal judgment/order PDF",
+          "Convert to DOCX",
+          "Verify document structure is maintained",
+          "Check paragraph breaks and spacing",
+          "Verify legal headers and case numbers are preserved"
+        ],
+        "expectedResult": "Legal document structure and hierarchy preserved"
+      },
+      {
+        "id": "EDX006",
+        "name": "Large File Processing",
+        "description": "Test conversion of large legal PDF files",
+        "priority": "Medium",
+        "steps": [
+          "Upload large PDF file (>10MB)",
+          "Monitor processing time",
+          "Verify successful conversion",
+          "Check output quality"
+        ],
+        "expectedResult": "Large files processed successfully within reasonable time"
+      },
+      {
+        "id": "EDX007",
+        "name": "Scanned Document Processing",
+        "description": "Test conversion of scanned legal documents",
+        "priority": "Medium",
+        "steps": [
+          "Upload scanned PDF document",
+          "Convert to DOCX",
+          "Verify text extraction quality",
+          "Check formatting preservation"
+        ],
+        "expectedResult": "Scanned documents converted with acceptable quality"
+      },
+      {
+        "id": "EDX008",
+        "name": "Invalid File Type Rejection",
+        "description": "Test rejection of non-PDF files",
+        "priority": "Medium",
+        "steps": [
+          "Upload non-PDF file (DOCX, TXT, etc.)",
+          "Verify proper error response",
+          "Check error message clarity"
+        ],
+        "expectedResult": "Non-PDF files rejected with appropriate error message"
+      },
+      {
+        "id": "EDX009",
+        "name": "Empty File Handling",
+        "description": "Test handling of empty or corrupted PDF files",
+        "priority": "Medium",
+        "steps": [
+          "Upload empty PDF file",
+          "Upload corrupted PDF file",
+          "Verify proper error handling",
+          "Check error messages"
+        ],
+        "expectedResult": "Empty/corrupted files handled gracefully with clear errors"
+      },
+      {
+        "id": "EDX010",
+        "name": "Rate Limiting",
+        "description": "Test rate limiting for multiple requests",
+        "priority": "Low",
+        "steps": [
+          "Send multiple rapid requests",
+          "Verify rate limiting is enforced",
+          "Check rate limit headers",
+          "Verify service recovery after rate limit"
+        ],
+        "expectedResult": "Rate limiting works correctly and service recovers"
+      },
+      {
+        "id": "EDX011",
+        "name": "File Size Limits",
+        "description": "Test handling of files exceeding size limits",
+        "priority": "Medium",
+        "steps": [
+          "Upload PDF file >50MB",
+          "Verify proper error response",
+          "Check error message clarity"
+        ],
+        "expectedResult": "Large files rejected with appropriate error message"
+      },
+      {
+        "id": "EDX012",
+        "name": "Concurrent Processing",
+        "description": "Test multiple simultaneous conversions",
+        "priority": "Low",
+        "steps": [
+          "Send multiple conversion requests simultaneously",
+          "Verify all requests are processed",
+          "Check output quality for each",
+          "Monitor system performance"
+        ],
+        "expectedResult": "Multiple requests processed successfully without conflicts"
+      },
+      {
+        "id": "EDX013",
+        "name": "Content Integrity Verification",
+        "description": "Test that legal content is preserved accurately",
+        "priority": "High",
+        "steps": [
+          "Upload legal document with specific content",
+          "Convert to DOCX",
+          "Compare original and converted content",
+          "Verify no content loss or corruption"
+        ],
+        "expectedResult": "All legal content preserved accurately in conversion"
+      },
+      {
+        "id": "EDX014",
+        "name": "Special Characters Handling",
+        "description": "Test handling of special characters in legal documents",
+        "priority": "Medium",
+        "steps": [
+          "Upload PDF with special characters (symbols, accents)",
+          "Convert to DOCX",
+          "Verify special characters are preserved",
+          "Check encoding consistency"
+        ],
+        "expectedResult": "Special characters preserved correctly in output"
+      },
+      {
+        "id": "EDX015",
+        "name": "API Response Format",
+        "description": "Test API response format and headers",
+        "priority": "Low",
+        "steps": [
+          "Make successful conversion request",
+          "Verify response headers (Content-Type, Content-Disposition)",
+          "Check file download functionality",
+          "Verify proper file naming"
+        ],
+        "expectedResult": "Proper API response format and file download"
+      }
+    ],
+    "testData": {
+      "validPdfs": [
+        "testsprite_tests/test_files/anita_yuvraj_test.pdf",
+        "testsprite_tests/test_files/file-1752733837504-630102423.pdf",
+        "testsprite_tests/test_files/Ravinder Kaur - UK.pdf",
+        "testsprite_tests/test_files/Tej Karan - Jodhpur.pdf"
+      ],
+      "invalidFiles": [
+        "testsprite_tests/test_files/sample.txt",
+        "testsprite_tests/test_files/sample.docx"
+      ]
+    },
+    "environment": {
+      "baseUrl": "http://localhost:3000",
+      "endpoint": "/generate-docx",
+      "timeout": 300000,
+      "maxFileSize": "50MB"
+    }
+  }
+} 

@@ -1,0 +1,160 @@
+{
+  "product_name": "Legal Document Metadata Extractor",
+  "version": "1.0.0",
+  "description": "AI-powered legal document metadata extraction service",
+  "target_users": [
+    "Legal Professionals",
+    "Court Administrators", 
+    "Legal Tech Companies",
+    "Academic Researchers"
+  ],
+  "core_features": [
+    {
+      "name": "PDF Metadata Extraction",
+      "endpoint": "/extract-metadata",
+      "method": "POST",
+      "description": "Extract legal metadata from PDF documents using AI",
+      "priority": "High",
+      "input": {
+        "type": "multipart/form-data",
+        "fields": [
+          {
+            "name": "pdf",
+            "type": "file",
+            "required": true,
+            "constraints": {
+              "max_size": "50MB",
+              "file_type": "application/pdf"
+            }
+          },
+          {
+            "name": "tesseract_path",
+            "type": "query",
+            "required": false,
+            "description": "Optional path to Tesseract executable"
+          }
+        ]
+      },
+      "output": {
+        "type": "application/json",
+        "schema": {
+          "success": "boolean",
+          "metadata": {
+            "appellant": "string",
+            "respondent": "string", 
+            "judgeName": "string",
+            "judgementType": "string",
+            "caseResult": "string",
+            "caseNumber": "string",
+            "courtName": "string",
+            "dateOfJudgement": "string",
+            "referredCases": "array"
+          },
+          "fileInfo": {
+            "originalName": "string",
+            "fileSize": "number",
+            "uploadTime": "string"
+          },
+          "processingInfo": {
+            "extractionMethod": "string",
+            "confidence": "number",
+            "isScanned": "boolean",
+            "pageCount": "number"
+          }
+        }
+      }
+    },
+    {
+      "name": "PDF to DOCX Conversion",
+      "endpoint": "/generate-docx", 
+      "method": "POST",
+      "description": "Convert PDF to DOCX format with header/footer removal",
+      "priority": "Medium",
+      "input": {
+        "type": "multipart/form-data",
+        "fields": [
+          {
+            "name": "pdf",
+            "type": "file",
+            "required": true,
+            "constraints": {
+              "max_size": "50MB",
+              "file_type": "application/pdf"
+            }
+          }
+        ]
+      },
+      "output": {
+        "type": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        "description": "DOCX file download"
+      }
+    }
+  ],
+  "non_functional_requirements": {
+    "performance": {
+      "response_time": "< 30 seconds",
+      "throughput": "100+ concurrent requests",
+      "file_size_limit": "50MB"
+    },
+    "security": {
+      "file_validation": "required",
+      "rate_limiting": "100 requests/minute",
+      "data_privacy": "required"
+    },
+    "reliability": {
+      "uptime": "99.5%",
+      "error_rate": "< 1%",
+      "graceful_degradation": "required"
+    }
+  },
+  "test_scenarios": [
+    {
+      "name": "Valid PDF Upload and Extraction",
+      "description": "Upload a valid PDF and extract metadata successfully using anita_yuvraj_test.pdf",
+      "priority": "High",
+      "test_file": "testsprite_tests/test_files/anita_yuvraj_test.pdf"
+    },
+    {
+      "name": "Invalid File Type Rejection", 
+      "description": "Reject non-PDF files with appropriate error message",
+      "priority": "High"
+    },
+    {
+      "name": "Large File Size Handling",
+      "description": "Handle large PDF files using Tej Karan - Jodhpur.pdf (5MB)",
+      "priority": "Medium",
+      "test_file": "testsprite_tests/test_files/Tej Karan - Jodhpur.pdf"
+    },
+    {
+      "name": "Scanned Document Processing",
+      "description": "Process scanned PDFs using OCR with Ravinder Kaur - UK.pdf",
+      "priority": "High",
+      "test_file": "testsprite_tests/test_files/Ravinder Kaur - UK.pdf"
+    },
+    {
+      "name": "AI Extraction Fallback",
+      "description": "Fallback to regex extraction when AI fails using various PDF files",
+      "priority": "Medium",
+      "test_files": [
+        "testsprite_tests/test_files/file-1752733837504-630102423.pdf",
+        "testsprite_tests/test_files/pdf-1752741187792-923217221.pdf"
+      ]
+    },
+    {
+      "name": "Rate Limiting",
+      "description": "Enforce rate limits and return appropriate responses",
+      "priority": "Medium"
+    },
+    {
+      "name": "Error Handling",
+      "description": "Handle various error scenarios gracefully",
+      "priority": "High"
+    },
+    {
+      "name": "PDF to DOCX Conversion",
+      "description": "Successfully convert PDF to DOCX format using anita_yuvraj_test.pdf",
+      "priority": "Medium",
+      "test_file": "testsprite_tests/test_files/anita_yuvraj_test.pdf"
+    }
+  ]
+} 

@@ -1,0 +1,18 @@
+{
+  "test_files": [
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\anita_yuvraj_test.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\Tej Karan - Jodhpur.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\Ravinder Kaur - UK.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\file-1752733837504-630102423.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\pdf-1752741187792-923217221.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\pdf-1752741702340-847242573.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\pdf-1752742087328-358145638.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\pdf-1752742145103-849438816.pdf",
+    "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\pdf-1752742323608-796495399.pdf"
+  ],
+  "valid_pdf": "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\anita_yuvraj_test.pdf",
+  "large_pdf": "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\Tej Karan - Jodhpur.pdf",
+  "scanned_pdf": "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files\\Ravinder Kaur - UK.pdf",
+  "uploads_directory": "D:\\Kajal\\sar_online\\sar_online_backend\\uploads",
+  "test_directory": "D:\\Kajal\\sar_online\\sar_online_backend\\testsprite_tests\\test_files"
+}

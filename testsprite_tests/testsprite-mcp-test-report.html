@@ -1,0 +1,326 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Markdown Preview</title>
+      <style>
+        body {
+          font-family: sans-serif;
+          padding: 40px;
+          line-height: 1.6;
+          background: #fdfdfd;
+          color: #333;
+        }
+        pre {
+          background: #f4f4f4;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
+        code {
+          font-family: monospace;
+          background: #eee;
+          padding: 2px 4px;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 20px;
+        }
+        th, td {
+          border: 1px solid #ccc;
+          padding: 8px 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>TestSprite AI Testing Report(MCP)</h1>
+<hr>
+<h2>1️⃣ Document Metadata</h2>
+<ul>
+<li><strong>Project Name:</strong> sar_online_backend</li>
+<li><strong>Version:</strong> 1.0.0</li>
+<li><strong>Date:</strong> 2025-07-28</li>
+<li><strong>Prepared by:</strong> TestSprite AI Team</li>
+</ul>
+<hr>
+<h2>2️⃣ Requirement Validation Summary</h2>
+<h3>Requirement: PDF Metadata Extraction</h3>
+<ul>
+<li><strong>Description:</strong> Extract legal metadata from PDF documents using AI-powered analysis with fallback to regex extraction.</li>
+</ul>
+<h4>Test 1</h4>
+<ul>
+<li><strong>Test ID:</strong> TC001</li>
+<li><strong>Test Name:</strong> Valid PDF upload and metadata extraction</li>
+<li><strong>Test Code:</strong> <a href="./TC001_valid_pdf_upload_and_metadata_extraction.py">code_file</a></li>
+<li><strong>Test Error:</strong> Test PDF file not found at uploads/valid_legal_document.pdf</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/dfccba1d-0370-47ee-9552-3b58c871c003</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> High</li>
+<li><strong>Analysis / Findings:</strong> Test failed due to missing test file. The system requires proper test environment setup with sample PDF files in the uploads directory.</li>
+</ul>
+<hr>
+<h4>Test 2</h4>
+<ul>
+<li><strong>Test ID:</strong> TC002</li>
+<li><strong>Test Name:</strong> Invalid file type rejection on metadata extraction</li>
+<li><strong>Test Code:</strong> <a href="./TC002_invalid_file_type_rejection_on_metadata_extraction.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/242b6be5-6c47-44a1-9af7-da61e99dcef3</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> Low</li>
+<li><strong>Analysis / Findings:</strong> File type validation works correctly. System properly rejects non-PDF files with appropriate error messages.</li>
+</ul>
+<hr>
+<h4>Test 3</h4>
+<ul>
+<li><strong>Test ID:</strong> TC003</li>
+<li><strong>Test Name:</strong> Large file size handling on metadata extraction</li>
+<li><strong>Test Code:</strong> <a href="./TC003_large_file_size_handling_on_metadata_extraction.py">code_file</a></li>
+<li><strong>Test Error:</strong> Uploads directory 'uploads' does not exist</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/63eabaec-3fda-4ec3-8c84-211bafd73bcf</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> High</li>
+<li><strong>Analysis / Findings:</strong> Test environment missing uploads directory. Need to ensure proper directory structure for file upload testing.</li>
+</ul>
+<hr>
+<h4>Test 4</h4>
+<ul>
+<li><strong>Test ID:</strong> TC004</li>
+<li><strong>Test Name:</strong> Scanned document processing with OCR</li>
+<li><strong>Test Code:</strong> <a href="./TC004_scanned_document_processing_with_ocr.py">code_file</a></li>
+<li><strong>Test Error:</strong> [Errno 2] No such file or directory: 'uploads'</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/96402ab0-c01b-4772-b96e-53262d8a3ac3</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> High</li>
+<li><strong>Analysis / Findings:</strong> OCR functionality cannot be tested due to missing test environment setup. Critical for scanned document processing validation.</li>
+</ul>
+<hr>
+<h4>Test 5</h4>
+<ul>
+<li><strong>Test ID:</strong> TC005</li>
+<li><strong>Test Name:</strong> AI extraction fallback to regex</li>
+<li><strong>Test Code:</strong> <a href="./TC005_ai_extraction_fallback_to_regex.py">code_file</a></li>
+<li><strong>Test Error:</strong> [Errno 2] No such file or directory: 'uploads'</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/b1c7d04f-5f00-419d-b901-f42d35dd35c7</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> High</li>
+<li><strong>Analysis / Findings:</strong> Fallback mechanism testing blocked by missing test files. Critical for ensuring system reliability when AI extraction fails.</li>
+</ul>
+<hr>
+<h3>Requirement: Error Handling and Validation</h3>
+<ul>
+<li><strong>Description:</strong> Robust error handling for various scenarios including missing files, corrupted data, and invalid parameters.</li>
+</ul>
+<h4>Test 1</h4>
+<ul>
+<li><strong>Test ID:</strong> TC007</li>
+<li><strong>Test Name:</strong> Error handling for extraction endpoint</li>
+<li><strong>Test Code:</strong> <a href="./TC007_error_handling_for_extraction_endpoint.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/132d2040-5a71-40ef-8b25-eea61d4537b6</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> Low</li>
+<li><strong>Analysis / Findings:</strong> Error handling works correctly with meaningful error messages. System gracefully handles various error scenarios.</li>
+</ul>
+<hr>
+<h3>Requirement: Rate Limiting and Security</h3>
+<ul>
+<li><strong>Description:</strong> Enforce rate limiting and security measures to prevent abuse and ensure system stability.</li>
+</ul>
+<h4>Test 1</h4>
+<ul>
+<li><strong>Test ID:</strong> TC006</li>
+<li><strong>Test Name:</strong> Rate limiting enforcement</li>
+<li><strong>Test Code:</strong> <a href="./TC006_rate_limiting_enforcement.py">code_file</a></li>
+<li><strong>Test Error:</strong> [Errno 2] No such file or directory: 'uploads'</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/4f03b43a-2a9a-401d-88a2-0b8e71d69d46</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> Medium</li>
+<li><strong>Analysis / Findings:</strong> Rate limiting test failed due to missing directory dependency. Need to separate rate limiting tests from file upload dependencies.</li>
+</ul>
+<hr>
+<h3>Requirement: PDF to DOCX Conversion</h3>
+<ul>
+<li><strong>Description:</strong> Convert PDF documents to DOCX format with enhanced formatting and header/footer removal.</li>
+</ul>
+<h4>Test 1</h4>
+<ul>
+<li><strong>Test ID:</strong> TC008</li>
+<li><strong>Test Name:</strong> PDF to DOCX conversion success</li>
+<li><strong>Test Code:</strong> <a href="./TC008_pdf_to_docx_conversion_success.py">code_file</a></li>
+<li><strong>Test Error:</strong> Test PDF file not found at uploads/valid_legal_document.pdf</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/da1dbf9a-45e6-4fe3-93db-2723660b67ae/797db729-5b45-4fc2-9540-2edffe1580db</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> High</li>
+<li><strong>Analysis / Findings:</strong> DOCX conversion functionality cannot be validated due to missing test files. Critical feature for document format conversion.</li>
+</ul>
+<hr>
+<h2>3️⃣ Coverage &amp; Matching Metrics</h2>
+<ul>
+<li><strong>25% of product requirements tested</strong></li>
+<li><strong>25% of tests passed</strong></li>
+<li><strong>Key gaps / risks:</strong></li>
+</ul>
+<blockquote>
+<p>25% of product requirements had at least one test generated.<br>
+25% of tests passed fully.<br>
+Risks: Missing test environment setup; uploads directory not created; test files not available; rate limiting implementation may be incomplete.</p>
+</blockquote>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Total Tests</th>
+<th>✅ Passed</th>
+<th>⚠️ Partial</th>
+<th>❌ Failed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>PDF Metadata Extraction</td>
+<td>5</td>
+<td>1</td>
+<td>0</td>
+<td>4</td>
+</tr>
+<tr>
+<td>Error Handling and Validation</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Rate Limiting and Security</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>PDF to DOCX Conversion</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>4️⃣ Critical Issues and Recommendations</h2>
+<h3>4.1 Environment Setup Issues</h3>
+<p><strong>Issue:</strong> Multiple tests failed due to missing <code>uploads</code> directory and test files.<br>
+<strong>Impact:</strong> High - Prevents validation of core functionality.<br>
+<strong>Recommendation:</strong></p>
+<ul>
+<li>Create automated test environment setup script</li>
+<li>Include sample PDF files for testing</li>
+<li>Add pre-test validation to ensure required directories exist</li>
+</ul>
+<h3>4.2 Test Dependencies</h3>
+<p><strong>Issue:</strong> Rate limiting tests depend on file upload functionality.<br>
+<strong>Impact:</strong> Medium - Reduces test isolation.<br>
+<strong>Recommendation:</strong></p>
+<ul>
+<li>Separate rate limiting tests from file upload dependencies</li>
+<li>Create mock endpoints for rate limiting validation</li>
+<li>Implement proper test isolation</li>
+</ul>
+<h3>4.3 Missing Test Coverage</h3>
+<p><strong>Issue:</strong> Limited test coverage for critical features.<br>
+<strong>Impact:</strong> High - Unknown reliability of core functionality.<br>
+<strong>Recommendation:</strong></p>
+<ul>
+<li>Add tests for AI extraction accuracy</li>
+<li>Validate OCR processing with real scanned documents</li>
+<li>Test fallback mechanisms with various document types</li>
+</ul>
+<hr>
+<h2>5️⃣ Next Steps</h2>
+<h3>5.1 Immediate Actions (High Priority)</h3>
+<ol>
+<li>
+<p><strong>Fix Test Environment:</strong></p>
+<ul>
+<li>Create <code>uploads</code> directory in test environment</li>
+<li>Add sample PDF files for testing</li>
+<li>Implement test setup validation</li>
+</ul>
+</li>
+<li>
+<p><strong>Improve Test Isolation:</strong></p>
+<ul>
+<li>Separate rate limiting tests from file dependencies</li>
+<li>Create mock endpoints for independent testing</li>
+<li>Add proper test cleanup procedures</li>
+</ul>
+</li>
+</ol>
+<h3>5.2 Medium Priority Actions</h3>
+<ol>
+<li>
+<p><strong>Enhance Test Coverage:</strong></p>
+<ul>
+<li>Add tests for AI extraction accuracy</li>
+<li>Validate OCR processing capabilities</li>
+<li>Test error scenarios with real documents</li>
+</ul>
+</li>
+<li>
+<p><strong>Performance Testing:</strong></p>
+<ul>
+<li>Test with large PDF files (approaching 50MB limit)</li>
+<li>Validate concurrent request handling</li>
+<li>Measure response times under load</li>
+</ul>
+</li>
+</ol>
+<h3>5.3 Long-term Improvements</h3>
+<ol>
+<li>
+<p><strong>Automated Testing:</strong></p>
+<ul>
+<li>Implement CI/CD pipeline integration</li>
+<li>Add automated test result reporting</li>
+<li>Create test data management system</li>
+</ul>
+</li>
+<li>
+<p><strong>Monitoring and Alerting:</strong></p>
+<ul>
+<li>Add test result monitoring</li>
+<li>Implement failure alerting</li>
+<li>Track test coverage metrics</li>
+</ul>
+</li>
+</ol>
+<hr>
+<h2>6️⃣ Conclusion</h2>
+<p>The TestSprite testing revealed that while the core functionality appears to be implemented correctly (as evidenced by the passing error handling and file validation tests), the test environment setup is incomplete, preventing comprehensive validation of the system's capabilities.</p>
+<p><strong>Key Success Areas:</strong></p>
+<ul>
+<li>File type validation works correctly</li>
+<li>Error handling provides meaningful responses</li>
+<li>Basic API structure is sound</li>
+</ul>
+<p><strong>Critical Areas for Improvement:</strong></p>
+<ul>
+<li>Test environment setup and maintenance</li>
+<li>Test isolation and dependency management</li>
+<li>Comprehensive test coverage for AI and OCR features</li>
+</ul>
+<p><strong>Overall Assessment:</strong> The system shows promise but requires proper test environment setup and enhanced test coverage to ensure reliability and performance in production use.</p>
+
+    </body>
+    </html>
+  

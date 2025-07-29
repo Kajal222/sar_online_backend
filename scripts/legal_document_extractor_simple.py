@@ -6,6 +6,8 @@ Uses OpenAI for accurate extraction of all legal metadata
 """
 
 import sys
+sys.stdout.reconfigure(encoding='utf-8')  # <-- ADD THIS LINE
+
 import json
 import re
 import os
@@ -14,6 +16,7 @@ import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 import base64
+import io
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -38,7 +41,10 @@ except ImportError:
 
 try:
     import pytesseract
+    from pdf2image import convert_from_path
     from PIL import Image
+    # Set tesseract path directly for pytesseract
+    pytesseract.pytesseract.tesseract_cmd = r'C:\Program Files\Tesseract-OCR\tesseract.exe'
     OCR_AVAILABLE = True
 except ImportError:
     OCR_AVAILABLE = False
@@ -109,14 +115,21 @@ class AILegalDocumentExtractor:
         
         try:
             if file_ext == '.pdf':
-                return self._extract_from_pdf(file_path)
+                result = self._extract_from_pdf(file_path)
+                # Add judgementOrder HTML for CKEditor
+                result['judgementOrder'] = extract_judgement_html_ck(file_path)
+                return result
             elif file_ext in ['.jpg', '.jpeg', '.png', '.tiff', '.bmp']:
-                return self._extract_from_image(file_path)
+                result = self._extract_from_image(file_path)
+                result['judgementOrder'] = ''  # Not applicable for images
+                return result
             else:
                 # Try to read as text file
                 with open(file_path, 'r', encoding='utf-8') as f:
                     text = f.read()
-                return self.extract_from_text(text)
+                result = self.extract_from_text(text)
+                result['judgementOrder'] = ''  # Not applicable for plain text
+                return result
                 
         except Exception as e:
             logger.error(f"File extraction failed: {e}")
@@ -189,6 +202,8 @@ class AILegalDocumentExtractor:
                 result["caseResult"] = last_case_result
             else:
                 result["caseResult"] = "none"
+            # Add judgementOrder HTML for CKEditor
+            result['judgementOrder'] = extract_judgement_html_ck(pdf_path)
             return result
             
         except Exception as e:
@@ -483,7 +498,12 @@ class AILegalDocumentExtractor:
             
             # Call OpenAI with retry logic
             response = self._chat_with_retry(messages)
-            result_text = response.choices[0].message.content.strip()
+            result_text = response.choices[0].message.content
+            # Check if result_text is a string before calling strip
+            if not isinstance(result_text, str):
+                logger.error(f"Unexpected result_text type in main extraction: {type(result_text)}, value: {result_text}")
+                return None
+            result_text = result_text.strip()
             logger.info(f"Raw OpenAI response: {result_text}")
             print(f"[OpenAI RAW RESPONSE] {result_text}", file=sys.stderr)
 
@@ -588,7 +608,7 @@ Extract the following fields and return ONLY valid JSON with these exact keys:
 
 11. "case_type": Use keywords like "Writ Petition", "Civil Appeal", "Criminal Appeal", etc., mentioned with case number.
 
-12. "decided_date": Date when judgment/order was delivered (typically found near judge's name or end of document).
+12. "decided_date": Date when judgment/order was delivered (typically found near judge's name or end of document or Reserved on or Pronounced on or Reportable on).
 
 13. "bench_strength": Number of judges on the bench. Infer from number of judges mentioned (e.g., single judge or division bench).
 
@@ -904,10 +924,14 @@ Return this exact JSON structure:
         }
 
     def _extract_appellant_regex(self, text: str) -> str:
-        """Robust regex appellant extraction supporting Versus and traditional patterns"""
+        """Improved regex appellant extraction supporting numbered lists and Versus patterns, prioritizing 'Appellant:' line and skipping court name."""
         # Try all patterns in order, return first match
         patterns = [
-            # Versus pattern (party before Versus)
+            # Appellant: <name> (prioritize this)
+            r'Appellant[s]?\s*:\s*([A-Z][^\n]+)',
+            # Numbered list at the top (Appellant)
+            r'Appellant[s]?\s*:?[\s\n]*((?:\d+\.\s*[^\n]+\n?)+)',
+            # Versus pattern (party before Versus, but skip if it matches court name)
             r'^([A-Z][A-Za-z &.]+?)\s*\n.*?Versus',
             # Traditional patterns
             r'Petitioners?\s*:\s*([A-Z][A-Za-z\s\.&(),-]+?)(?:\n|$)',
@@ -919,15 +943,29 @@ Return this exact JSON structure:
         for pattern in patterns:
             match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE | re.DOTALL)
             if match:
-                return match.group(1).strip()
+                group = match.group(1).strip()
+                # If it's a numbered list, join all lines
+                if re.match(r'(?:\d+\.\s*[^\n]+\n?)+', group):
+                    names = re.findall(r'\d+\.\s*([^\n]+)', group)
+                    return ', '.join([n.strip() for n in names])
+                # Skip if group looks like a court name
+                if re.search(r'court of|high court|supreme court', group, re.IGNORECASE):
+                    continue
+                return group
+        # Fallback: try to find 'State of ...' as appellant
+        match = re.search(r'(State of [A-Za-z ]+)', text, re.IGNORECASE)
+        if match:
+            return match.group(1).strip()
         return "Appellant"
 
     def _extract_respondent_regex(self, text: str) -> str:
-        """Robust regex respondent extraction supporting Versus and traditional patterns"""
-        # Try all patterns in order, return first match
+        """Improved regex respondent extraction supporting numbered lists and Versus patterns"""
         patterns = [
             # Versus pattern (party after Versus)
+            r'Versus\s*\n((?:\d+\.\s*[^\n]+\n?)+)',
             r'Versus\s*\n([A-Z][A-Za-z &.]+)',
+            # Numbered list after Respondent
+            r'Respondent[s]?\s*:?\s*((?:\d+\.\s*[^\n]+\n?)+)',
             # Traditional patterns
             r'Respondents?\s*:\s*([A-Z][A-Za-z\s\.&(),-]+?)(?:\n|$)',
             r'([A-Z][A-Za-z\s\.&(),-]+?)\s*\.{3,}\s*Respondents?',
@@ -936,7 +974,11 @@ Return this exact JSON structure:
         for pattern in patterns:
             match = re.search(pattern, text, re.MULTILINE | re.IGNORECASE | re.DOTALL)
             if match:
-                return match.group(1).strip()
+                group = match.group(1).strip()
+                if re.match(r'(?:\d+\.\s*[^\n]+\n?)+', group):
+                    names = re.findall(r'\d+\.\s*([^\n]+)', group)
+                    return ', '.join([n.strip() for n in names])
+                return group
         return "Respondents"
 
     def _extract_judge_regex(self, text: str) -> str:
@@ -958,7 +1000,7 @@ Return this exact JSON structure:
         return "none"
 
     def _extract_case_info_regex(self, text: str) -> Dict:
-        """Basic regex case info extraction"""
+        """Improved regex for case info and notes extraction"""
         case_info = {
             "caseNumber": "1",
             "decidedDay": "1",
@@ -967,9 +1009,9 @@ Return this exact JSON structure:
             "notes": "none",
             "year": 2025
         }
-        
         # Extract case number and year
         patterns = [
+            r'(Criminal Appeal No\.\s*\d+/\d{4})',
             r'(Writ\s+Petition\s+No\.?\s*\d+\s*/\s*\d{4}[^\n]*)',
             r'(Civil\s+Appeal\s+No\.?\s*\d+\s*/\s*\d{4}[^\n]*)',
             r'(Criminal\s+Appeal\s+No\.?\s*\d+\s*/\s*\d{4}[^\n]*)',
@@ -978,7 +1020,6 @@ Return this exact JSON structure:
             match = re.search(pattern, text, re.IGNORECASE)
             if match:
                 full_sentence = match.group(1).strip()
-                # Try to extract number and year from the matched sentence
                 num_year_match = re.search(r'(\d+)\s*/\s*(\d{4})', full_sentence)
                 if num_year_match:
                     case_number = num_year_match.group(1)
@@ -992,7 +1033,6 @@ Return this exact JSON structure:
                 else:
                     case_info["notes"] = full_sentence
                 break
-        
         return case_info
 
     def _extract_case_referred(self, text: str) -> list:
@@ -1059,7 +1099,12 @@ Return this exact JSON structure:
         ]
         try:
             response = self._chat_with_retry(messages)
-            result_text = response.choices[0].message.content.strip()
+            result_text = response.choices[0].message.content
+            # Check if result_text is a string before calling strip
+            if not isinstance(result_text, str):
+                logger.warning(f"Unexpected result_text type in referred cases: {type(result_text)}, value: {result_text}")
+                return []
+            result_text = result_text.strip()
             # Extract JSON array from response
             import json
             json_match = re.search(r'\[.*\]', result_text, re.DOTALL)
@@ -1110,7 +1155,12 @@ Return this exact JSON structure:
             response = self._chat_with_retry(messages)
             result_text = response.choices[0].message.content.strip()
             # Only return the first line (in case of extra explanation)
-            return result_text.split('\n')[0].strip() if result_text else "none"
+            # Check if result_text is a string before calling split
+            if isinstance(result_text, str) and result_text:
+                return result_text.split('\n')[0].strip()
+            else:
+                logger.warning(f"Unexpected result_text type: {type(result_text)}, value: {result_text}")
+                return "none"
         except Exception as e:
             logger.error(f"OpenAI judge name extraction failed: {e}")
             return "none"
@@ -1340,6 +1390,92 @@ The petition is dismissed."""
             "arguments": sys.argv
         }
         print(json.dumps(error_result, ensure_ascii=False))
+        sys.exit(1)
+
+# TEST FUNCTION FOR YOUR SAMPLE
+if __name__ == "__main__" and '--test-sample' in sys.argv:
+    sample_text = '''IN THE HIGH COURT OF JUDICATURE FOR RAJASTHAN AT JODHPUR\n\nCriminal Appeal No. 226/2001\n\nAppellant: State Of Rajasthan\n\nVersus\n\n1. Tej Karan son of Ranu Lal EY\n2. Arvind son of Tej Karan ( AAA. 5)\n3. Smt. Rambha Devi wife of Tej Karan Bo, ===, / All resident of Kamla Nehru Nagar, House NO.326, Jodhpur.\n\nRespondents\n\n...rest of document...'''
+    extractor = AILegalDocumentExtractor()
+    print("Appellant:", extractor._extract_appellant_regex(sample_text))
+    print("Respondent:", extractor._extract_respondent_regex(sample_text))
+    print("Case Info:", extractor._extract_case_info_regex(sample_text))
+
+def extract_judgement_html(pdf_path):
+    import fitz
+    doc = fitz.open(pdf_path)
+    found_heading = False
+    html_content = ""
+    for page in doc:
+        html = page.get_text("html")
+        lower_html = html.lower()
+        if not found_heading:
+            idx = -1
+            for heading in ["judgment", "judgement", "order"]:
+                idx = lower_html.find(heading)
+                if idx != -1:
+                    break
+            if idx != -1:
+                found_heading = True
+                html_content += html[idx:]
+        elif found_heading:
+            html_content += html
+    doc.close()
+    if found_heading and html_content.strip():
+        return html_content
+    # Fallback: OCR for scanned PDFs
+    return extract_judgement_html_ocr(pdf_path)
+
+def extract_judgement_html_ck(pdf_path):
+    import fitz
+    doc = fitz.open(pdf_path)
+    found_heading = False
+    html_content = ""
+    for page in doc:
+        blocks = page.get_text("dict")["blocks"]
+        for block in blocks:
+            block_text = ""
+            block_align = None
+            for line in block.get("lines", []):
+                for span in line.get("spans", []):
+                    text = span["text"].replace(" ", "&nbsp;")
+                    # Detect heading
+                    if not found_heading and ("judgment" in text.lower() or "judgement" in text.lower() or "order" in text.lower()):
+                        found_heading = True
+                    elif found_heading:
+                        # Style detection
+                        style = ""
+                        if span.get("flags", 0) & 2:  # bold
+                            text = f"<strong>{text}</strong>"
+                        if span.get("flags", 0) & 8:  # italic
+                            text = f"<em>{text}</em>"
+                        # Alignment
+                        if span.get("origin", [0, 0])[0] > page.rect.width * 0.6:
+                            block_align = "right"
+                        block_text += text
+                if found_heading and block_text:
+                    if block_align == "right":
+                        html_content += f'<div style="text-align:right">{block_text}</div>'
+                    else:
+                        html_content += f'<div>{block_text}</div>'
+                    block_text = ""
+            if found_heading and html_content.strip():
+                # Optionally, stop if we reach another major heading (not implemented for simplicity)
+                pass
+    doc.close()
+    return html_content if found_heading else ""
+
+# CLI entry point for extracting judgement/order section as HTML
+if __name__ == "__main__" and '--extract-judgement-html' in sys.argv:
+    idx = sys.argv.index('--extract-judgement-html')
+    if idx + 1 < len(sys.argv):
+        pdf_path = sys.argv[idx + 1]
+        html = extract_judgement_html(pdf_path)
+        out_path = os.path.splitext(pdf_path)[0] + "_judgement_section.html"
+        with open(out_path, "w", encoding="utf-8") as f:
+            f.write(html)
+        print(f"Judgement/Order section extracted and saved as HTML: {out_path}")
+    else:
+        print("Usage: python legal_document_extractor_simple.py --extract-judgement-html <file.pdf>")
         sys.exit(1)
 
 if __name__ == "__main__":
