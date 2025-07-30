@@ -306,10 +306,11 @@ app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
     const docxPath = path.join(tempDir, docxFileName);
     console.log(`Converting PDF: ${originalName} (${(fileSize / 1024 / 1024).toFixed(2)}MB) to DOCX`);
     try {
-        // Prepare the Python command arguments.  Use the enhanced
-        // converter script rather than the older v5 converter.
+        // Prepare the Python command arguments. Use the new
+        // font-preserving converter to keep layout close to the
+        // source PDF.
         const pythonArgs = [
-            'scripts/true_ocr_pdf_to_docx.py',
+            'scripts/font_preserving_pdf_to_docx.py',
             pdfPath,
             docxPath
         ];

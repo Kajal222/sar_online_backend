@@ -14,6 +14,7 @@ This enhanced PDF to DOCX converter is specifically designed for legal documents
 
 ### 📝 Formatting Preservation
 - **Font Preservation**: Maintains original font sizes and styles
+- **Bold/Italic Detection**: Attempts to keep bold and italic styling
 - **Alignment Preservation**: Preserves left, center, right, and justified alignment
 - **Content Integrity**: Ensures no content loss during conversion
 - **Paragraph Structure**: Maintains proper paragraph breaks and spacing
@@ -29,6 +30,11 @@ This enhanced PDF to DOCX converter is specifically designed for legal documents
 ### POST `/generate-docx`
 
 Converts a legal PDF document to DOCX format with enhanced processing.
+
+This endpoint now relies on the `font_preserving_pdf_to_docx.py`
+converter which maps PDF text spans directly to DOCX runs. This
+approach keeps the original fonts and alignment for a layout that
+closely mirrors the source PDF.
 
 **Request:**
 - Method: `POST`
