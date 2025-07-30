@@ -1,0 +1,47 @@
+{
+  "document_path": "test_output_positioning.docx",
+  "analysis_summary": {
+    "total_issues": 3,
+    "alignment_issues": 0,
+    "numbered_list_issues": 3,
+    "formatting_issues": 0,
+    "structure_issues": 0
+  },
+  "detailed_issues": {
+    "alignment_issues": [],
+    "numbered_list_issues": [
+      {
+        "paragraph_index": 0,
+        "issue": "Missing space after number",
+        "text": "1. State of Goa,",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 1,
+        "issue": "Missing space after number",
+        "text": "2. Goa Legislature Secretariat",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 2,
+        "issue": "Missing space after number",
+        "text": "3. Namrata Ulman,",
+        "suggestion": "Add space between number and text"
+      }
+    ],
+    "formatting_issues": [],
+    "structure_issues": []
+  },
+  "recommendations": [
+    {
+      "category": "Numbered Lists",
+      "priority": "High",
+      "description": "Improve numbered list formatting",
+      "actions": [
+        "Ensure proper spacing after numbers",
+        "Use consistent left alignment for lists",
+        "Maintain proper indentation"
+      ]
+    }
+  ]
+}

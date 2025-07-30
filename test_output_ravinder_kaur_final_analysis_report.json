@@ -1,0 +1,118 @@
+{
+  "document_path": "test_output_ravinder_kaur_final.docx",
+  "analysis_summary": {
+    "total_issues": 13,
+    "alignment_issues": 1,
+    "numbered_list_issues": 12,
+    "formatting_issues": 0,
+    "structure_issues": 0
+  },
+  "detailed_issues": {
+    "alignment_issues": [
+      {
+        "paragraph_index": 202,
+        "issue": "Long text center-aligned",
+        "text": "“33.4) The power of quashing should be exercised sparingly with \ncircumspection, as it has been obse",
+        "suggestion": "Consider left alignment for long text"
+      }
+    ],
+    "numbered_list_issues": [
+      {
+        "paragraph_index": 19,
+        "issue": "Missing space after number",
+        "text": "2. \n \n The facts in brief are that applicant no.2 got",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 23,
+        "issue": "Missing space after number",
+        "text": "01. 2018 by respondent no.2 alleging therein that both",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 28,
+        "issue": "Missing space after number",
+        "text": "3. \n \n Learned counsel for the applicants submits",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 42,
+        "issue": "Missing space after number",
+        "text": "4. \n \n The \nlearned \ncounsel \nfor \nthe \napplicants",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 90,
+        "issue": "Missing space after number",
+        "text": "5. \n \n  Though \nnot \npleaded \nin \nthe \nC482",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 102,
+        "issue": "Missing space after number",
+        "text": "6. \n \n Per contra, the learned counsel for the State",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 109,
+        "issue": "Missing space after number",
+        "text": "7. \n \n Respondent no.2 in her counter affidavit",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 127,
+        "issue": "Missing space after number",
+        "text": "8. \n \n The applicants in their rejoinder affidavit",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 142,
+        "issue": "Missing space after number",
+        "text": "9. \n \n I have heard learned counsel for the parties at",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 186,
+        "issue": "Missing space after number",
+        "text": "10.  Since, the offences lodged against the applicants",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 194,
+        "issue": "Missing space after number",
+        "text": "11. \n Recently, \nin \nthe \ncase \nof \nNeeharika,",
+        "suggestion": "Add space between number and text"
+      },
+      {
+        "paragraph_index": 213,
+        "issue": "Missing space after number",
+        "text": "13. \n Accordingly, the C482 application is dismissed.",
+        "suggestion": "Add space between number and text"
+      }
+    ],
+    "formatting_issues": [],
+    "structure_issues": []
+  },
+  "recommendations": [
+    {
+      "category": "Numbered Lists",
+      "priority": "High",
+      "description": "Improve numbered list formatting",
+      "actions": [
+        "Ensure proper spacing after numbers",
+        "Use consistent left alignment for lists",
+        "Maintain proper indentation"
+      ]
+    },
+    {
+      "category": "Alignment",
+      "priority": "Medium",
+      "description": "Fix alignment inconsistencies",
+      "actions": [
+        "Use left alignment for body text",
+        "Center short titles and headers",
+        "Avoid justifying short text"
+      ]
+    }
+  ]
+}

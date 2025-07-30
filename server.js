@@ -309,7 +309,7 @@ app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
         // Prepare the Python command arguments.  Use the enhanced
         // converter script rather than the older v5 converter.
         const pythonArgs = [
-            'scripts/enhanced_pdf_to_docx.py',
+            'scripts/true_ocr_pdf_to_docx.py',
             pdfPath,
             docxPath
         ];

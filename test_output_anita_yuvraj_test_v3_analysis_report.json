@@ -1,0 +1,52 @@
+{
+  "document_path": "test_output_anita_yuvraj_test_v3.docx",
+  "analysis_summary": {
+    "total_issues": 2,
+    "alignment_issues": 1,
+    "numbered_list_issues": 1,
+    "formatting_issues": 0,
+    "structure_issues": 0
+  },
+  "detailed_issues": {
+    "alignment_issues": [
+      {
+        "paragraph_index": 5,
+        "issue": "Long text center-aligned",
+        "text": "Respondents \n \nMr S.D. Lotlikar, Senior Advocate with Mr Terence Sequeira, \nAdvocate for the Petitio",
+        "suggestion": "Consider left alignment for long text"
+      }
+    ],
+    "numbered_list_issues": [
+      {
+        "paragraph_index": 4,
+        "issue": "Missing space after number",
+        "text": "1.  State of Goa, \nThrough its Chief Secretary, \nSecretariat, Porvorim, Goa. \n \n2. Goa Legislature S",
+        "suggestion": "Add space between number and text"
+      }
+    ],
+    "formatting_issues": [],
+    "structure_issues": []
+  },
+  "recommendations": [
+    {
+      "category": "Numbered Lists",
+      "priority": "High",
+      "description": "Improve numbered list formatting",
+      "actions": [
+        "Ensure proper spacing after numbers",
+        "Use consistent left alignment for lists",
+        "Maintain proper indentation"
+      ]
+    },
+    {
+      "category": "Alignment",
+      "priority": "Medium",
+      "description": "Fix alignment inconsistencies",
+      "actions": [
+        "Use left alignment for body text",
+        "Center short titles and headers",
+        "Avoid justifying short text"
+      ]
+    }
+  ]
+}
