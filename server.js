@@ -119,7 +119,7 @@ app.post('/extract-metadata', upload.single('pdf'), async (req, res) => {
     console.log(`Processing PDF: ${originalName} (${(fileSize / 1024 / 1024).toFixed(2)}MB) at ${pdfPath}`);
 
     // Set appropriate timeout based on file size
-    const timeoutMs = fileSize > 5 * 1024 * 1024 ? 300000 : 120000; // 5 minutes for large files, 2 minutes for others
+            const timeoutMs = fileSize > 5 * 1024 * 1024 ? 600000 : 300000; // 10 minutes for large files, 5 minutes for others
 
     try {
         function extractLegalMetadata(pdfPath, tesseractPath = null, timeout = 120000) {
@@ -309,7 +309,7 @@ app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
         // Prepare the Python command arguments.  Use the enhanced
         // converter script rather than the older v5 converter.
         const pythonArgs = [
-            'scripts/true_ocr_pdf_to_docx.py',
+            'scripts/enhanced_pdf_to_docx.py',
             pdfPath,
             docxPath
         ];
@@ -326,7 +326,7 @@ app.post('/generate-docx', upload.single('pdf'), async (req, res) => {
             console.error('Python stderr:', data.toString());
         });
         // Timeout based on file size: larger files get more time
-        const timeoutMs = fileSize > 5 * 1024 * 1024 ? 300000 : 120000;
+        const timeoutMs = fileSize > 5 * 1024 * 1024 ? 600000 : 300000; // 10 minutes for large files, 5 minutes for others
         // Kill the Python process if it runs too long
         const timeoutId = setTimeout(() => {
             console.error(`DOCX conversion timeout after ${timeoutMs/1000} seconds`);
