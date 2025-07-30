@@ -30,6 +30,11 @@ This enhanced PDF to DOCX converter is specifically designed for legal documents
 
 Converts a legal PDF document to DOCX format with enhanced processing.
 
+This endpoint now relies on the `font_preserving_pdf_to_docx.py`
+converter which maps PDF text spans directly to DOCX runs. This
+approach keeps the original fonts and alignment for a layout that
+closely mirrors the source PDF.
+
 **Request:**
 - Method: `POST`
 - Content-Type: `multipart/form-data`
